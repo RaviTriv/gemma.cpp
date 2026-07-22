@@ -93,11 +93,13 @@ enum class LayerAttentionType {
   // compressed KV latent plus a decoupled RoPE key, optionally with
   // sequence-axis compression (CSA/HCA) selected via `AttentionVariant`.
   kDeepSeekMLA,
+  kVitGemma4,
 };
 
 static inline bool EnumValid(LayerAttentionType type) {
   return type == LayerAttentionType::kGemma ||
          type == LayerAttentionType::kVit ||
+         type == LayerAttentionType::kVitGemma4 ||
          type == LayerAttentionType::kDeepSeekMLA;
 }
 
@@ -273,6 +275,7 @@ enum class Model {
   GEMMA4_26B_MOE,
   GEMMA4_2B,
   DEEPSEEK4_FLASH,
+  GEMMA4_2B_LM,
   kSentinel,
 };
 

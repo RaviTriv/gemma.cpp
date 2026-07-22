@@ -247,7 +247,8 @@ static int DeduceLayerTypes(const BlobReader& reader) {
   bool has_query_norm = false;
   for (size_t key_idx = 0; key_idx < reader.Keys().size(); ++key_idx) {
     const std::string& key = reader.Keys()[key_idx];
-    if (key.find("qkv_ein_w") != std::string::npos) {  // NOLINT
+    if (key.find("qkv_ein_w") != std::string::npos ||
+        key.find("vit_qkv") != std::string::npos) {  // NOLINT
       layer_types |= kDeducedViT;
     }
     if (key.find("img_pos_emb") != std::string::npos) {  // NOLINT
@@ -290,6 +291,18 @@ static ModelConfig ReadOrDeduceConfig(BlobReader& reader,
           WarnIfExtra(result, kConfigName);
           HWY_ASSERT_M(result.pos != 0, "Error deserializing config");
         }));
+    const PromptWrapping expected_wrapping = ChooseWrapping(config.model);
+    if (expected_wrapping == PromptWrapping::PALIGEMMA ||
+        expected_wrapping == PromptWrapping::GEMMA_VLM) {
+      if (config.wrapping != expected_wrapping) {
+        HWY_WARN("Overriding config.wrapping=%d with expected %d for model %s",
+                 static_cast<int>(config.wrapping),
+                 static_cast<int>(expected_wrapping),
+                 ModelPrefix(config.model));
+        config.wrapping = expected_wrapping;
+      }
+    }
+    // KV sharing is supported, do not force -1.
   }
   // Optionally deduce so we can verify it against the config we read.
   std::optional<Model> deduced_model;
